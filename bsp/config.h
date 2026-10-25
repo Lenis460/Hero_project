@@ -36,11 +36,15 @@ constexpr float kPi = 3.14159265358979f;
 constexpr float kDeg2Rad = kPi / 180.0f;
 constexpr float kRad2Deg = 180.0f / kPi;
 
-// ---------- 底盘几何（初值，[待确认] 基地实测） ----------
-constexpr float kWheelRadius     = 0.07786f; // 轮半径 r [m]
-constexpr float kHalfWheelBase   = 0.275f;   // a：中心→前后轮轴线 [m]（前后轴距 0.55/2）
-constexpr float kHalfTrackWidth  = 0.225f;   // b：中心→左右轮线   [m]（左右轮距 0.45/2）
-constexpr float kWheelGearRatio  = 14.0f;    // 轮电机减速比 [待确认]
+// ---------- 底盘几何（2026-10-25 依据实车拓扑与实测回填） ----------
+constexpr float kWheelRadius     = 0.07786f; // 轮半径 r [m]（实测 77.86mm，与队教程考核参数一致）
+constexpr float kHalfWheelBase   = 0.275f;   // a：中心→前后轮轴线 [m]（前后轴距 0.55/2，已确认）
+constexpr float kHalfTrackWidth  = 0.225f;   // b：中心→左右轮线   [m]（左右轮距 0.45/2，已确认）
+constexpr float kWheelGearRatio  = 19.2f;    // M3508 减速比（3591/187 ≈ 19.203，取 19.2）
+
+// ---------- 轮电机 CAN ID（下板 CAN2，4×M3508+C620，按 WheelIndex 顺序索引） ----------
+// 实车 ID 分布：左前=1 左后=2 右后=3 右前=4（用户依据拓扑确认）
+inline constexpr uint8_t kWheelCanId[kWheelCount] = {1, 4, 2, 3};
 
 // ---------- 安全参数 ----------
 constexpr float kRcTimeout        = 0.100f; // 遥控器失联判定阈值 [s]

@@ -58,13 +58,18 @@ for name, vx, vy, wz in tests:
 
 print()
 print("=" * 72)
-print("测试 3：减速比换算（14:1）")
+print("测试 3：减速比换算（M3508 19.2:1，2026-10-25 确认）")
 print("=" * 72)
+GEAR = 19.2
 w_wheel = 1.0
-print(f"轮端 1 rad/s -> 电机轴 {w_wheel*14:.1f} rad/s = {w_wheel*14*60/(2*math.pi):.1f} rpm")
+print(f"轮端 1 rad/s -> 电机轴 {w_wheel*GEAR:.1f} rad/s = {w_wheel*GEAR*60/(2*math.pi):.1f} rpm")
+v = 1.0
+w_w = v / R
+print(f"底盘 1 m/s -> 轮端 {w_w:.3f} rad/s -> 电机轴 {w_w*GEAR:.1f} rad/s = "
+      f"{w_w*GEAR*60/(2*math.pi):.0f} rpm（设计上限参考）")
 rpm = 1000.0
 print(f"电机 1000 rpm -> 电机轴 {rpm*2*math.pi/60:.1f} rad/s -> 轮端 "
-      f"{rpm*2*math.pi/60/14:.3f} rad/s -> 线速度 {rpm*2*math.pi/60/14*R:.3f} m/s")
+      f"{rpm*2*math.pi/60/GEAR:.3f} rad/s -> 线速度 {rpm*2*math.pi/60/GEAR*R:.3f} m/s")
 print()
 print("符号判读提示：")
 print("  (b) 纯左移 vy=+1 -> FL,RL 为负（左侧轮向后），FR,RR 为正（右侧轮向前）")
