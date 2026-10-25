@@ -92,22 +92,22 @@ M2 之前不得向任何动力电机发送使能、力矩、电流、速度或�
 
 ## 任务清单
 
-### M0 软件准备（在家）
+### M0 软件准备（在家）✅ 2026-10-25 完成
 
 - [x] 固定底盘/云台坐标系、角度正方向、轮子编号和 SI 单位（已固化为 `bsp/config.h`）
 - [x] 完成云台系到车体系 `v_C = R(θ)·v_G` 的四角度单元测试（`tools/verify_kinematics.py` 数值基准，四角度全部符合约定）
-- [ ] 麦轮运动学公式学习推导并记录假设（`docs/kinematics_notes.md` 待写）
-- [ ] 达妙电机 CAN 协议学习：MIT 模式/位置速度模式、使能失能帧、反馈帧和丢失保护（**手册已归档** `../参考资料/开发板与电机手册/DM-J4340-2EC*.pdf`，协议章节 p11-19，调试流程 p20-28）
-- [ ] 明确 pitch 4340 的型号确认项和位置-速度模式驱动适配接口
-- [ ] 设计 `SafetyGate`：遥控器超时、急停、启动延时、上下板超时/序号/校验和 IWDG 刷新位置
+- [x] 麦轮运动学公式学习推导并记录假设（`docs/kinematics_notes.md`，含 X 布局假设、参数初值、跟随符号推导）
+- [x] 达妙电机 CAN 协议学习（`docs/dm4340_notes.md`，依据手册 V1.3 p12-18：控制/使能/失能/反馈帧布局、线性映射、ERR 码全表）
+- [x] pitch 4340 驱动适配接口：`device/dm_motor.{h,cpp}`——**帧格式已按手册实现**（反馈 D0=ID|ERR<<4、POS 大端、12 位拼位、±12.5/±30/±10 映射），保留 MarkProtocolConfirmed() 确认门（铭牌/CAN_ID/模式/范围现场核对后才发帧）
+- [x] 设计 `SafetyGate`：`module/safety.{h,cpp}`（BOOT_DELAY→WAIT_RC→OUTPUT_ALLOWED⇄SAFE_STOP 闩锁；急停最高优先级、失联 100ms、人工复位需回中）
 - [x] 工程骨架：`bsp / algorithm / device / module` 四层目录（CubeMX 工程已生成并首次编译通过）
-- [x] PID 类（P/I/D、积分限幅、输出限幅）：`algorithm/pid.{h,cpp}`（微分先行、dt 外部传入、Reset 防模式切换跳变）+ `tools/verify_pid.py` 阶跃仿真（P 稳态误差/PD/PID 收敛/windup 抗饱和对照）
-- [x] DR16 解码（18 字节 → 摇杆 `-1~1`、拨杆三态）：`device/dr16.{h,cpp}`（DJI 标准位布局、死区、frame_count 供失联判断、通道映射集中可改）+ `tools/verify_dr16.py` 往返自测（8 定点 + 200 随机全过）。**摇杆/拨杆与通道的物理映射为暂定，M1 上车逐通道实测确认**
-- [x] 麦轮解算函数（云台系 `vx/vy/ω` + `θ` → `FL/FR/RL/RR` 四轮 `rad/s`）：`algorithm/kinematics.{h,cpp}` + `tools/verify_kinematics.py` 基准
-- [ ] 模式状态机（分离/跟随/小陀螺/`SAFE_STOP`，拨杆映射）
-- [ ] IWDG 接口预留，刷新函数只允许位于安全判定和输出完成之后
-- [ ] 无硬件自测：解算典型值、坐标旋转四角度、SafetyGate 假输入/假输出和 PID 仿真
-- [x] Git 已初始化（main 分支），GitHub 私有仓库已关联，按"每完成一个模块一笔提交、每天收工 push 一次"执行
+- [x] PID 类：`algorithm/pid.{h,cpp}`（微分先行、积分/输出限幅、dt 外部传入、Reset 防切换跳变）+ `tools/verify_pid.py`
+- [x] DR16 解码：`device/dr16.{h,cpp}`——位布局经**协议 V1.4 手册逐行核对**（S1=左拨杆 bits7:6、S2=右拨杆 bits5:4、7ms/帧、拨轮在"保留"字节 16-17）；`tools/verify_dr16.py` 往返自测 8 定点+200 随机全过；M1 只做方向复核
+- [x] 麦轮解算函数：`algorithm/kinematics.{h,cpp}`（旋转/逆解/限幅/WrapPi/减速比换算）+ `tools/verify_kinematics.py`
+- [x] 模式状态机：`module/mode.h`（拨杆映射暂定 M1 复核）+ `module/chassis.{h,cpp}`（四轮速度环占位+跟随 PID 符号已推导修正）
+- [x] IWDG 接口预留：`bsp/iwdg.{h,cpp}`（空实现，M1 CubeMX 配置后填充；刷新位置铁律写入 safety.h）
+- [x] 无硬件自测：`tools/verify_integration.py` 全链路 10 项全过（上电延时/θ=90° 方向/小陀螺/跟随方向/失联≤100ms SAFE_STOP/急停闩锁/人工复位）
+- [x] Git 已初始化，GitHub 私有仓库已关联，按模块提交、每日推送
 
 ### M1 通信与安全打通（基地①）
 
@@ -165,10 +165,10 @@ M2 之前不得向任何动力电机发送使能、力矩、电流、速度或�
 ## 进度快照（每次结束时更新）
 
 - 日期：2026-10-25
-- 当前阶段：M0 代码推进中。已完成 config.h、kinematics（旋转+麦轮逆解+验算基准）、pid（位置式+积分/输出限幅+微分先行+阶跃仿真）；均已交叉编译通过并提交推送
-- 已完成：构建链路 + git 仓库（remote 已关联 github.com/Lenis460/Hero_project）；仿真教训两条：①积分限幅必须大于稳态所需积分量，否则永远到不了目标 ②输出限幅低于目标时物理上不可能达标，windup 演示要"输出限幅 > 稳态需求"才成立；另外修正了 verify_kinematics.py 的 vy_G 符号标注错误（+y 是左！）
-- 下一步：模式状态机 + SafetyGate 骨架（module/mode + module/safety，拨杆映射、超时/急停/启动延时判定，纯软件可假输入自测）→ 底盘模块串联（遥控→旋转→解算→PID 假输出）
-- 卡点/风险：pitch 4340 电压/CAN ID/协议未确认；轮距、轴距、轮半径和减速比未现场确认；DR16 通道物理映射暂定待 M1 实测；队内组件库（遥控器接口）待向组长确认
+- 当前阶段：**M0 完成** ✅ 全部模块交叉编译通过、四套 Python 自测全绿（运动学/DR16 往返/PID 仿真/全链路集成 10 项）；DR16 位布局与达妙 4340 帧格式均已对照官方手册（协议 V1.4 / 说明书 V1.3）核实并修正三处错误（反馈 D0 高低位、POS 大端、ERR 3/4/5 故障）
+- 已完成：config/kinematics/pid/dr16/safety/mode+chassis/dm4340(手册版)/iwdg 预留 + docs 两份推导协议笔记 + 队示例工程已归档（含 ahrs/Mahony 组件，M4 复用）
+- 下一步：**M1 基地①**（见上方清单）：CubeMX 配 USART3(DBus)+CAN+IWDG 并烧录、遥控器逐通道打印复核方向、CAN 只读反馈、全部安全门实测（断点法验证看门狗）；出发前：装 Ozone V3.26、问组长队组件库/机械臂任务书、打印 M1 确认清单
+- 卡点/风险：拨杆-模式映射与摇杆方向为暂定（M1 复核）；4340 的 CAN_ID/MasterID/模式寄存器/映射范围待调试助手核对；底盘电机型号/轴距/减速比待实测；周末基地人多尽量周中
 
 ## Git 操作说明
 
