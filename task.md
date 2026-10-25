@@ -10,7 +10,7 @@
 - 验收：功能演示 + 代码（GitHub），英雄机器人部分 DDL **11 月 8 日**，总 DDL **11 月 18 日**
 - 计划文件：`../计划-英雄麦轮.md`（M0–M5 六阶段，每阶段有验收标准）
 - 考核说明：`../Hello World 电控组2027考核说明(3).pdf`
-- 仓库：当前 `Hero_project/` 只是工程文件夹，**尚未初始化 Git**；
+- 仓库：GitHub 私有仓库 `https://github.com/Lenis460/Hero_project`（若未关联/未推送，执行 `git remote add origin https://github.com/Lenis460/Hero_project.git` 后 `git push -u origin main`）；push 节奏：每天收工一次
 ## 关键参数与待确认项
 
 | 项 | 当前约定/初值 | 状态 |
@@ -94,20 +94,20 @@ M2 之前不得向任何动力电机发送使能、力矩、电流、速度或�
 
 ### M0 软件准备（在家）
 
-- [ ] 麦轮运动学公式学习推导并记录假设
-- [ ] 固定底盘/云台坐标系、角度正方向、轮子编号和 SI 单位
-- [ ] 完成云台系到车体系 `v_C = R(θ)·v_G` 的四角度单元测试
+- [x] 固定底盘/云台坐标系、角度正方向、轮子编号和 SI 单位（已固化为 `bsp/config.h`）
+- [x] 完成云台系到车体系 `v_C = R(θ)·v_G` 的四角度单元测试（`tools/verify_kinematics.py` 数值基准，四角度全部符合约定）
+- [ ] 麦轮运动学公式学习推导并记录假设（`docs/kinematics_notes.md` 待写）
 - [ ] 达妙电机 CAN 协议学习：MIT 模式/位置速度模式、使能失能帧、反馈帧和丢失保护
 - [ ] 明确 pitch 4340 的型号确认项和位置-速度模式驱动适配接口
 - [ ] 设计 `SafetyGate`：遥控器超时、急停、启动延时、上下板超时/序号/校验和 IWDG 刷新位置
-- [ ] 工程骨架：`bsp / algorithm / device / module` 四层目录
+- [x] 工程骨架：`bsp / algorithm / device / module` 四层目录（CubeMX 工程已生成并首次编译通过）
 - [ ] PID 类（P/I/D、积分限幅、输出限幅）
 - [ ] DR16 解码（18 字节 → 摇杆 `-1~1`、拨杆三态）
-- [ ] 麦轮解算函数（云台系 `vx/vy/ω` + `θ` → `FL/FR/RL/RR` 四轮 `rad/s`）
+- [x] 麦轮解算函数（云台系 `vx/vy/ω` + `θ` → `FL/FR/RL/RR` 四轮 `rad/s`）：`algorithm/kinematics.{h,cpp}` + `tools/verify_kinematics.py` 基准
 - [ ] 模式状态机（分离/跟随/小陀螺/`SAFE_STOP`，拨杆映射）
 - [ ] IWDG 接口预留，刷新函数只允许位于安全判定和输出完成之后
 - [ ] 无硬件自测：解算典型值、坐标旋转四角度、SafetyGate 假输入/假输出和 PID 仿真
-- [ ] **本阶段暂不初始化 Git，待文档和基础设计稳定后再统一纳入版本管理**
+- [x] Git 已初始化（main 分支），GitHub 私有仓库已关联，按"每完成一个模块一笔提交、每天收工 push 一次"执行
 
 ### M1 通信与安全打通（基地①）
 
@@ -164,26 +164,18 @@ M2 之前不得向任何动力电机发送使能、力矩、电流、速度或�
 ## 进度快照（每次结束时更新）
 
 - 日期：2026-10-25
-- 当前阶段：M0 工程骨架已立。CubeMX 工程已生成（STM32F407IGH6、CMake、Generate Under Root）；根目录 CMakeLists.txt 已替换为队模板（工程名 Hero_project，user_folders = bsp/algorithm/device/module）；**首次交叉编译已通过**，产物 `build/Hero_project.elf` + `build/Debug/{.hex,.bin}`，FLASH 0.45% / RAM 1.21%
-- 已完成：环境体检；零星注意点并入；CubeMX 生成 + 队模板落地 + 构建验证（踩坑记录：`target_link_libraries` 必须与 `cmake/stm32cubemx` 子目录保持 plain 签名，不能加 PUBLIC；新版 CubeMX 不会覆盖根 CMakeLists.txt）
-- 下一步：写 `bsp/config.h`（坐标系/单位/轮编号/a/b/r 常量固化）→ 麦轮解算函数 + 坐标旋转（algorithm/）→ Python 数值验算
-- 卡点/风险：pitch 4340 电压/CAN ID/协议未确认；轮距、轴距、轮半径和减速比未现场确认；Git 按要求暂不初始化；队内组件库（遥控器接口）待向组长确认
+- 当前阶段：M0 代码开写。已完成 `bsp/config.h`（约定/几何/安全参数固化）、`algorithm/kinematics.{h,cpp}`（坐标旋转 + 麦轮逆解算 + 减速比换算 + 限幅）、`tools/verify_kinematics.py`（数值基准，四角度旋转/四工况解算全符合约定）；带新模块交叉编译通过
+- 已完成：CubeMX 工程 + 队模板 + 构建链路（踩坑：①新增文件必须重新 `cmake --preset Debug` 配置，GLOB 才会收录；②队模板把各用户目录本身加入 -I，引用头文件直接写文件名 `#include "config.h"`，不带目录前缀）
+- 下一步：`algorithm/pid.{h,cpp}` PID 类（积分限幅、输出限幅、微分先行可选）→ Python 阶跃仿真验证 → DR16 解码模块（先按考核说明接口写，等组长确认队组件）
+- 卡点/风险：pitch 4340 电压/CAN ID/协议未确认；轮距、轴距、轮半径和减速比未现场确认；队内组件库（遥控器接口）待向组长确认
 
-## Git 操作说明（只记录流程，当前不执行）
+## Git 操作说明
 
-等文档、硬件参数和最小工程骨架稳定后，再按下面顺序操作：
-
-```text
-git init -b main
-git status
-配置 .gitignore，排除构建产物、IDE 临时文件和本地配置
-git add 计划-英雄麦轮.md Hero_project/task.md .gitignore
-git commit -m "docs: define safety gate and robot conventions"
-git remote add origin <GitHub仓库地址>
-git push -u origin main
-```
-
-建议提交节奏：第一笔只提交文档和安全设计；第二笔提交最小工程骨架；之后按 M0、M1、M2 等阶段提交。每次提交前先看 `git diff` 和 `git status`，不在基地临时初始化或上传未经确认的版本。
+- 仓库：GitHub 私有仓库 `https://github.com/Lenis460/Hero_project`（main 分支）
+- 节奏：**每完成一个模块/一次修改一笔提交；每天收工 push 一次**。助手执行提交前先 `git status` + `git diff --staged` 检查
+- 提交信息用 conventional commits：`feat:` / `fix:` / `docs:` / `chore:` + 模块范围，如 `feat(pid): add pid controller with anti-windup`
+- 若 remote 未关联：`git remote add origin https://github.com/Lenis460/Hero_project.git`，然后 `git push -u origin main`
+- 不在基地临时 force push；验收前确认仓库可被组长访问（可见性/协作者）
 
 ## 新聊天窗口快速上手
 
