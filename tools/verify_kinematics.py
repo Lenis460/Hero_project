@@ -36,7 +36,11 @@ for d, name in cases:
 print()
 for d, name in cases:
     vx, vy, wz = rotate_g_to_c(0.0, 1.0, 0.0, deg(d))
-    print(f"θ={d:+4d}° ({name})  推杆[右] -> 底盘系 vx={vx:+.3f} vy={vy:+.3f}")
+    print(f"θ={d:+4d}° ({name})  推杆[左] vy_G=+1 -> 底盘系 vx={vx:+.3f} vy={vy:+.3f}")
+print()
+for d, name in cases:
+    vx, vy, wz = rotate_g_to_c(0.0, -1.0, 0.0, deg(d))
+    print(f"θ={d:+4d}° ({name})  推杆[右] vy_G=-1 -> 底盘系 vx={vx:+.3f} vy={vy:+.3f}")
 
 print()
 print("=" * 72)
