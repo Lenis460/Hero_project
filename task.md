@@ -101,7 +101,7 @@ M2 之前不得向任何动力电机发送使能、力矩、电流、速度或�
 - [ ] 明确 pitch 4340 的型号确认项和位置-速度模式驱动适配接口
 - [ ] 设计 `SafetyGate`：遥控器超时、急停、启动延时、上下板超时/序号/校验和 IWDG 刷新位置
 - [x] 工程骨架：`bsp / algorithm / device / module` 四层目录（CubeMX 工程已生成并首次编译通过）
-- [ ] PID 类（P/I/D、积分限幅、输出限幅）
+- [x] PID 类（P/I/D、积分限幅、输出限幅）：`algorithm/pid.{h,cpp}`（微分先行、dt 外部传入、Reset 防模式切换跳变）+ `tools/verify_pid.py` 阶跃仿真（P 稳态误差/PD/PID 收敛/windup 抗饱和对照）
 - [ ] DR16 解码（18 字节 → 摇杆 `-1~1`、拨杆三态）
 - [x] 麦轮解算函数（云台系 `vx/vy/ω` + `θ` → `FL/FR/RL/RR` 四轮 `rad/s`）：`algorithm/kinematics.{h,cpp}` + `tools/verify_kinematics.py` 基准
 - [ ] 模式状态机（分离/跟随/小陀螺/`SAFE_STOP`，拨杆映射）
@@ -164,9 +164,9 @@ M2 之前不得向任何动力电机发送使能、力矩、电流、速度或�
 ## 进度快照（每次结束时更新）
 
 - 日期：2026-10-25
-- 当前阶段：M0 代码开写。已完成 `bsp/config.h`（约定/几何/安全参数固化）、`algorithm/kinematics.{h,cpp}`（坐标旋转 + 麦轮逆解算 + 减速比换算 + 限幅）、`tools/verify_kinematics.py`（数值基准，四角度旋转/四工况解算全符合约定）；带新模块交叉编译通过
-- 已完成：CubeMX 工程 + 队模板 + 构建链路（踩坑：①新增文件必须重新 `cmake --preset Debug` 配置，GLOB 才会收录；②队模板把各用户目录本身加入 -I，引用头文件直接写文件名 `#include "config.h"`，不带目录前缀）
-- 下一步：`algorithm/pid.{h,cpp}` PID 类（积分限幅、输出限幅、微分先行可选）→ Python 阶跃仿真验证 → DR16 解码模块（先按考核说明接口写，等组长确认队组件）
+- 当前阶段：M0 代码推进中。已完成 config.h、kinematics（旋转+麦轮逆解+验算基准）、pid（位置式+积分/输出限幅+微分先行+阶跃仿真）；均已交叉编译通过并提交推送
+- 已完成：构建链路 + git 仓库（remote 已关联 github.com/Lenis460/Hero_project）；仿真教训两条：①积分限幅必须大于稳态所需积分量，否则永远到不了目标 ②输出限幅低于目标时物理上不可能达标，windup 演示要"输出限幅 > 稳态需求"才成立；另外修正了 verify_kinematics.py 的 vy_G 符号标注错误（+y 是左！）
+- 下一步：DR16 遥控器解码模块（device/dr16，按考核说明接口先写，等组长确认队组件再对齐）→ 模式状态机 + SafetyGate 骨架
 - 卡点/风险：pitch 4340 电压/CAN ID/协议未确认；轮距、轴距、轮半径和减速比未现场确认；队内组件库（遥控器接口）待向组长确认
 
 ## Git 操作说明
