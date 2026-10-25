@@ -25,6 +25,7 @@ public:
   };
 
   explicit Pid(const Params &params);
+  Pid() = default; // 数组/容器占位用，参数为零值，使用前必须 SetParams
 
   void SetParams(const Params &params);
   const Params &params() const;
@@ -45,7 +46,7 @@ public:
   float last_output() const { return last_output_; }
 
 private:
-  Params params_;
+  Params params_{};
   float target_ = 0.0f;
   float integral_term_ = 0.0f; // 已乘 ki 并限幅后的积分贡献
   float prev_feedback_ = 0.0f;

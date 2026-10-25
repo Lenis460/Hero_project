@@ -47,4 +47,11 @@ inline float MotorRpmToWheelOmega(float rpm) {
   return rpm * (2.0f * cfg::kPi / 60.0f) / cfg::kWheelGearRatio;
 }
 
+// 角度归一化到 (-pi, pi]（多圈跟随误差计算用）
+inline float WrapPi(float a) {
+  while (a > cfg::kPi) a -= 2.0f * cfg::kPi;
+  while (a <= -cfg::kPi) a += 2.0f * cfg::kPi;
+  return a;
+}
+
 } // namespace kinematics
