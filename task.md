@@ -197,11 +197,11 @@ M2 之前不得向任何动力电机发送使能、力矩、电流、速度或�
 
 ## 进度快照（每次结束时更新）
 
-- 日期：2026-10-25（晚，第二批更新）
-- 当前阶段：**M0 完成** ✅ + **实车参数/拓扑回填完成**：减速比 19.2、r/a/b 确认、轮 CAN ID 表（FL=1/RL=2/RR=3/FR=4）写入 `cfg::kWheelCanId`、双板拓扑成文（见「实车电气拓扑」节）、IMU=BMI088 + 队内 ahrs 组件方案落定、队教程第四章通读零冲突
-- 已完成：config/kinematics/pid/dr16/safety/mode+chassis/dm4340(手册版)/iwdg 预留 + docs 两份推导协议笔记 + 四套 Python 自测全绿 + 队示例工程归档（含 ahrs/Mahony 组件，M4 复用）
-- 下一步：**M1 基地①**（见上方清单）：CubeMX 配 USART3(DBus)+CAN1+CAN2+IWDG 并烧录、遥控器逐通道打印复核方向、CAN 只读抓帧（轮 ID 复核 + yaw Master ID + 超级电容 ID）、全部安全门实测（断点法验证看门狗）；出发前：问组长队组件库更新版/机械臂任务书
-- 卡点/风险：拨杆-模式映射与摇杆方向为暂定（M1 复核）；4340 的 MasterID/电压铭牌/模式寄存器待调试助手核对；上板安装位置待目视（影响云台 IMU 方案）；板间协议 ID 待抓帧后定；周末基地人多尽量周中
+- 日期：2026-10-25 深夜（基地①现场）
+- 当前阶段：**M1-1/2/3 完成，正要首次烧录**。硬件普查+参数回填✅；CubeMX 配置检查✅（修时钟 PLLM 25→12，C 板 12MHz 晶振，用户已在 Clock Configuration 确认 HSE=12/M=12/N=336/P=2=168MHz 并保存 .ioc，未重新生成）；胶水层写完并构建通过（FLASH 2.6%）：bsp/wdg、bsp/canbus（双 CAN 滤波+16 帧环形抓帧器）、device/c620（反馈解析）、module/app（C 兼容胶水：主循环=解码→SafetyGate→Chassis 干跑不发送→WdgRefresh，UART 空闲 DMA 重挂，CAN RX0 回调）
+- M1 现场测试进度：**尚未烧录**。下一步=Ozone 烧录 build/Hero_project.elf → Watch 加 `app_watch` → 按 M1-4/5/6 顺序测：①loop_count 涨（活）②遥控器逐通道映射记录（错了只改 dr16.h 的 kChXX）③can2_sniff/can1_sniff 的 ring 里 ID 列表（轮 0x201-204 复核、yaw Master ID、超电 ID）④安全门（关遥控器/急停→state=3，回中恢复）⑤拔调试器独立跑验证看门狗
+- 待办：push 滞后 1 笔（基地网络 TLS 抖动，恢复后 `git push`）；上板装于 yaw 后✅（照片确认，M4 板载 BMI088 方案成立）；麦轮 X 布局✅
+- 卡点/风险：4340 反馈帧 D[0] 两种解读（CAN ID=Master_ID 还是 D0=Master_ID）→ 抓帧裁决；yaw DM-J4310 帧格式按抓帧确认；周末基地人多
 
 ## Git 操作说明
 
