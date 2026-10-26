@@ -8,7 +8,6 @@
 set(CMAKE_SYSTEM_VERSION 1)
 # Specify the minimum required version of CMake
 cmake_minimum_required(VERSION 3.22)
-include("cmake/gcc-arm-none-eabi.cmake")
 # Set the C++ and C standards
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
